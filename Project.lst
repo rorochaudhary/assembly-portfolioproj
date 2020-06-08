@@ -1,23 +1,24 @@
-Microsoft (R) Macro Assembler Version 14.26.28806.0	    06/08/20 00:01:49
+Microsoft (R) Macro Assembler Version 14.26.28806.0	    06/08/20 15:27:47
 9Programming Assignment #6   (RohitChaudhary_Project6.asm    Page 1 - 1
 
 
 				TITLE Programming Assignment #6   (RohitChaudhary_Project6.asm)
 
 				; Author: Rohit Chaudhary
-				; Last Modified: 6/6/2020
+				; Last Modified: 6/7/2020
 				; OSU email address: chaudroh@oregonstate.edu
 				; Course number/section: CS 271/400
 				; Project Number: 6               Due Date: 6/7/2020
-				; Description: test program demonstrating functionality of ReadVal and WriteVal
-				;	procedures by prompting user to input 10 integers that will be stored in 
+				; Description: Test program demonstrating ReadVal and WriteVal procedures. 
+				;	Program prompts user to input 10 integers that will be stored in 
 				;	an array, and then calculates the sum and average of the inputted vals. 
 				;	ReadVal procedure implements the macro getString (macro prompts and gets 
 				;	keyboard string input) and converts the numeric string in to the
 				;	corresponding integer value while validating for sign and size. WriteVal
 				;	procedure implements the macro displayString (macro prints string stored
-				;	at specific memory location) converts a numeric value into a string of
-				;	digits are are printed.
+				;	at specific memory location) and converts a numeric value into a string of
+				;	digits that are then printed as a comma-separated list. The sum and average
+				;	are printed after the list in similar fashion.
 
 				INCLUDE Irvine32.inc
 			      C ; Include file for Irvine32.lib             (Irvine32.inc)
@@ -38,8 +39,8 @@ Microsoft (R) Macro Assembler Version 14.26.28806.0	    06/08/20 00:01:49
 			      C .LIST
 			      C 
 
- =-80000000			minVal = -2147483648			; min possible 32bit value
- = 7FFFFFFF			maxVal = 2147483647				; max possible 32bit value
+ =-80000000			MINVAL = -2147483648			; min possible 32bit value
+ = 7FFFFFFF			MAXVAL = 2147483647				; max possible 32bit value
  = 0000000A			ARRAYSIZE = 10					; size of array containing integers
 
 				;---------------------------------------
@@ -47,14 +48,16 @@ Microsoft (R) Macro Assembler Version 14.26.28806.0	    06/08/20 00:01:49
 				;
 				; displays contents of buffer to user by printing buffer to console.
 				;
-				; preconditions: OFFSET of buffer must be passed along with buffer when 
-				;	declaring the argument
+				; preconditions: buffer is an OFFSET to the string in memory.
+				;
+				; postconditions: buffer is printed for user
 				;
 				; receives:
-				;		buffer = string to be printed, passed with preceding OFFSET
+				;		buffer = address of string to be printed
 				;
-				; returns: string is printed to window
+				; returns: none
 				;---------------------------------------
+					; print the string
 					push	edx
 					mov		edx, buffer
 					call	WriteString
@@ -63,30 +66,29 @@ Microsoft (R) Macro Assembler Version 14.26.28806.0	    06/08/20 00:01:49
 				;---------------------------------------
 				mGetString MACRO prompt:req, varName:req, varLen:req, input_len:req
 				;
-				; calls mDisplayString to display a prompt for user and subsequently read user
-				;	input with ReadString. user input stored in argument varName by ReadString 
-				;	and argument varLen placed in edx as used by ReadString. length of users
-				;	input from ReadString (EAX) stored in input_len
+				; displays prompt for user via mdisplayString. Subsequently reads user input
+				;	with ReadString (and its required parameters, varName and varLen), storing
+				;	input at memory address of varName. Resulting length of user's string input
+				;	stored at memory location input_len.
 				;
-				; preconditions: prompt with OFFSET passed as argument, parameter varName is an 
-				;	array of characters, varLen is length of varLen
+				; preconditions: addresses of prompt, varName, varLen, input_len are declared
+				;	and passed a required arguments.
 				;
-				; postconditions: varName and input_len updated
+				; postconditions: prompt printed. eax contains user input length by ReadString
 				;
 				; receives:
-				;		prompt = address of user prompt to be printed, passed with preceding OFFSET
-				;		varName = address ReadString user input array, passed with OFFSET
+				;		prompt = OFFSET address of user prompt to be printed
+				;		varName = OFFSET address ReadString user input array
 				;		varLen = length of varLen as used by ReadString
-				;		input_len = length (bytes) if user input after ReadString, from EAX, passed with OFFSET
+				;		input_len = OFFSET address of length of user ReadString input
 				;
-				; returns: array varLen updated with user input, eax contains length
-				;	of inputted string
+				; returns: varName and input_len updated
 				;---------------------------------------
 					push	ecx
 					push	edx
 					push	edi
 					
-					; display a prompt for input
+					; display prompt for user input
 					mDisplayString prompt
 
 					; read using ReadString
@@ -99,7 +101,6 @@ Microsoft (R) Macro Assembler Version 14.26.28806.0	    06/08/20 00:01:49
 					pop		edi
 					pop		edx
 					pop		ecx
-
 				ENDM
 
  00000000			.data
@@ -235,23 +236,25 @@ Microsoft (R) Macro Assembler Version 14.26.28806.0	    06/08/20 00:01:49
 	   76 65 72 61 67
 	   65 20 69 73 3A
 	   20 00
- 00000279 00000000sum					SDWORD		?
+ 00000279 00000000		sum					SDWORD		?
  0000027D 00000000		average				SDWORD		?
- 00000281 54 68 61 6E 6B	goodbye_str			BYTE		"Thanks for playing!",0
-	   73 20 66 6F 72
-	   20 70 6C 61 79
-	   69 6E 67 21 00
+ 00000281 0A 0D 0A 0D 54	goodbye_str			BYTE		10,13,10,13,"Thanks for playing!",10,13,0
+	   68 61 6E 6B 73
+	   20 66 6F 72 20
+	   70 6C 61 79 69
+	   6E 67 21 0A 0D
+	   00
 
 
  00000000			.code
  00000000			main PROC
-				; introduction procedure displays title, author, and user instructions (macro)
+					; display title, author, and instructions
  00000000  68 00000000 R		push	OFFSET title_str
  00000005  68 00000040 R		push	OFFSET author_str
  0000000A  68 00000060 R		push	OFFSET intro_str
- 0000000F  E8 00000092			call	introduction
+ 0000000F  E8 0000009C			call	introduction
 					
-				; get 10 integers from user and placed into array
+					; get 10 integers from user into array
  00000014  68 0000018C R		push	OFFSET user_val_sign
  00000019  68 00000184 R		push	OFFSET actual_len_input
  0000001E  68 00000190 R		push	OFFSET array_nums
@@ -261,11 +264,11 @@ Microsoft (R) Macro Assembler Version 14.26.28806.0	    06/08/20 00:01:49
  0000002F  68 00000174 R		push	OFFSET user_input_str
  00000034  FF 35 00000180 R		push	max_len_input
  0000003A  68 00000188 R		push	OFFSET user_val
- 0000003F  68 80000000			push	minVal
- 00000044  68 7FFFFFFF			push	maxVal
- 00000049  E8 0000007D			call	fillArray
+ 0000003F  68 80000000			push	MINVAL
+ 00000044  68 7FFFFFFF			push	MAXVAL
+ 00000049  E8 00000087			call	fillArray
 
-				; displayArray will loop through array and print array
+					; print the 10 integers
  0000004E  68 0000023B R		push	OFFSET comma
  00000053  68 0000020F R		push	OFFSET current_array_num
  00000058  68 00000190 R		push	OFFSET array_nums
@@ -273,9 +276,9 @@ Microsoft (R) Macro Assembler Version 14.26.28806.0	    06/08/20 00:01:49
  0000005F  68 00000213 R		push	OFFSET array_str
  00000064  68 000001FF R		push	OFFSET user_output_str
  00000069  FF 35 0000020B R		push	max_len_output
- 0000006F  E8 000001C8			call	displayArray
+ 0000006F  E8 000001D2			call	displayArray
 
-				; display stats will display both the sum and average of the 10 nums
+					; calculate and print the sum and average of 10 ints
  00000074  68 000001FF R		push	OFFSET user_output_str
  00000079  FF 35 0000020B R		push	max_len_output
  0000007F  68 00000279 R		push	OFFSET sum
@@ -284,679 +287,681 @@ Microsoft (R) Macro Assembler Version 14.26.28806.0	    06/08/20 00:01:49
  0000008E  6A 0A			push	ARRAYSIZE
  00000090  68 0000023E R		push	OFFSET sum_str
  00000095  68 0000025E R		push	OFFSET average_str
- 0000009A  E8 00000257			call	displayStats
+ 0000009A  E8 00000261			call	displayStats
+
+					; say goodbye to user
+ 0000009F  68 00000281 R		push	OFFSET goodbye_str
+ 000000A4  E8 000002B4			call	farewell
 
 					exit	; exit to operating system
- 0000009F  6A 00	   *	    push   +000000000h
- 000000A1  E8 00000000 E   *	    call   ExitProcess
- 000000A6			main ENDP
+ 000000A9  6A 00	   *	    push   +000000000h
+ 000000AB  E8 00000000 E   *	    call   ExitProcess
+ 000000B0			main ENDP
 
 				;---------------------------------------
- 000000A6			introduction proc
+ 000000B0			introduction proc
 				;
 				; displays program title, information, and user instructions by printing to
-				;	console. utilizes mDisplayString macro to print.
+				;	console via macro mdisplayString
 				;
 				; preconditions: strings containing title, author, and instructions are 
-				;	prepared for display.
+				;	prepared.
 				; 
 				; postconditions: relevant strings are printed to console
 				;
 				; receives: 
-				;		[ebp+16] @title_str
-				;		[ebp+12] @author_str
-				;		[ebp+8] @intro_str
+				;			[ebp+16]	@title_str
+				;			[ebp+12]	@author_str
+				;			[ebp+8]		@intro_str
 				;
 				; returns: none
 				;---------------------------------------
 					; set up the stack frame
- 000000A6  55				push	ebp
- 000000A7  8B EC			mov		ebp, esp
+ 000000B0  55				push	ebp
+ 000000B1  8B EC			mov		ebp, esp
 
 					; print title, author, instructions
 					mDisplayString	[ebp+16]
- 000000A9  52		     1		push	edx
- 000000AA  8B 55 10	     1		mov		edx, [ebp+16]
- 000000AD  E8 00000000 E     1		call	WriteString
- 000000B2  5A		     1		pop		edx
-					mDisplayString	[ebp+12]
  000000B3  52		     1		push	edx
- 000000B4  8B 55 0C	     1		mov		edx, [ebp+12]
+ 000000B4  8B 55 10	     1		mov		edx, [ebp+16]
  000000B7  E8 00000000 E     1		call	WriteString
  000000BC  5A		     1		pop		edx
-					mDisplayString	[ebp+8]
+					mDisplayString	[ebp+12]
  000000BD  52		     1		push	edx
- 000000BE  8B 55 08	     1		mov		edx, [ebp+8]
+ 000000BE  8B 55 0C	     1		mov		edx, [ebp+12]
  000000C1  E8 00000000 E     1		call	WriteString
  000000C6  5A		     1		pop		edx
+					mDisplayString	[ebp+8]
+ 000000C7  52		     1		push	edx
+ 000000C8  8B 55 08	     1		mov		edx, [ebp+8]
+ 000000CB  E8 00000000 E     1		call	WriteString
+ 000000D0  5A		     1		pop		edx
 
 					; clear the stack
- 000000C7  5D				pop		ebp
- 000000C8  C2 000C			ret		12
- 000000CB			introduction ENDP
+ 000000D1  5D				pop		ebp
+ 000000D2  C2 000C			ret		12
+ 000000D5			introduction ENDP
 				;---------------------------------------
- 000000CB			fillArray proc
+ 000000D5			fillArray proc
 				;
-				; repeats ReadVal procedure ARRAYSIZE times, taking the resulting number from 
-				;	ReadVal and adding it to an array
+				; fills array with ARRAYSIZE amount of nums, utilizing ReadVal to retrieve user
+				;	input.
 				;
 				; preconditions: array of ARRAYSIZE is declared, preconditions for ReadVal are
-				;	met. procedure requires parameters for both the array and for ReadVal, as
-				;	ReadVal will use fillArray parameters to as its own arguments.
+				;	met. changes registers eax, ecx, edi, edi.
 				; 
-				; postconditions: array is filled, user_val is updated with last inputted num
+				; postconditions: user_val is updated with most recent user inputted integer
 				;
 				; receives: 
-				;		[ebp+48]	OFFSET user_val_sign = sign of user's input value
-				;		[ebp+44]	OFFSET acutal_len_input = length of user's input in bytes
-				;		[ebp+40]	OFFSET array_nums = array receiving nums
-				;		[ebp+36]	ARRAYSIZE = size of array_nums
-				;		[ebp+32]	@error_str	= error msg to display
-				;		[ebp+28]	@prompt_str = string asking user to input a value
-				;		[ebp+24]	@user_input_str = str to receive user input
-				;		[ebp+20]	max_len_input = size of user_input_str
-				;		[ebp+16]	@user_val = address of variable to be updated with converted num
-				;		[ebp+12]	minVal = minimum acceptable input value
-				;		[ebp+8]		maxVal = maximum acceptable input value
+				;			[ebp+48]	@val_sign = sign of user's input value
+				;			[ebp+44]	@user_len_input = length of user's input in bytes
+				;			[ebp+40]	@array = array to hold user inputted integers
+				;			[ebp+36]	ARRAYSIZE = size of array
+				;			[ebp+32]	@error_str	= error msg to display
+				;			[ebp+28]	@prompt_str = string asking user to input a value
+				;			[ebp+24]	@user_input_str = string array to receive user input
+				;			[ebp+20]	max_len_input = size of user_input_str
+				;			[ebp+16]	@user_val = variable to be updated with converted num
+				;			[ebp+12]	MINVAL = minimum acceptable input value
+				;			[ebp+8]		MAXVAL = maximum acceptable input value
 				;
 				; returns: updated array
 				;---------------------------------------
 					; set up the stack frame
- 000000CB  55				push	ebp
- 000000CC  8B EC			mov		ebp, esp
+ 000000D5  55				push		ebp
+ 000000D6  8B EC			mov		ebp, esp
 
 					; prepare loop
- 000000CE  8B 7D 28			mov		edi, [ebp+40]			; array_nums
- 000000D1  8B 75 10			mov		esi, [ebp+16]			; current int to go into array
- 000000D4  8B 4D 24			mov		ecx, [ebp+36]			; ARRAYSIZE
+ 000000D8  8B 7D 28			mov		edi, [ebp+40]			; array
+ 000000DB  8B 75 10			mov		esi, [ebp+16]			; current inputted int
+ 000000DE  8B 4D 24			mov		ecx, [ebp+36]			; ARRAYSIZE
 
- 000000D7			Fill:
+ 000000E1			Fill:
 					; save relevant values before ReadVal
- 000000D7  51				push	ecx
- 000000D8  57				push	edi
- 000000D9  56				push	esi
+ 000000E1  51				push	ecx
+ 000000E2  57				push	edi
+ 000000E3  56				push	esi
 
-					; items needed to call ReadVal
- 000000DA  FF 75 30			push	[ebp+48]				; OFFSET user_val_sign
- 000000DD  FF 75 2C			push	[ebp+44]				; OFFSET actual_len_input
- 000000E0  FF 75 20			push	[ebp+32]				; OFFSET error_str
- 000000E3  FF 75 1C			push	[ebp+28]				; OFFSET prompt_str
- 000000E6  FF 75 18			push	[ebp+24]				; OFFSET user_input_str
- 000000E9  FF 75 14			push	[ebp+20]				; max_len_input
- 000000EC  FF 75 10			push	[ebp+16]				; OFFSET user_val
- 000000EF  FF 75 0C			push	[ebp+12]				; minVal
- 000000F2  FF 75 08			push	[ebp+8]					; maxVal
- 000000F5  E8 00000010			call	ReadVal
+					; prepare arguments for ReadVal
+ 000000E4  FF 75 30			push	[ebp+48]				; OFFSET user_val_sign
+ 000000E7  FF 75 2C			push	[ebp+44]				; OFFSET actual_len_input
+ 000000EA  FF 75 20			push	[ebp+32]				; OFFSET error_str
+ 000000ED  FF 75 1C			push	[ebp+28]				; OFFSET prompt_str
+ 000000F0  FF 75 18			push	[ebp+24]				; OFFSET user_input_str
+ 000000F3  FF 75 14			push	[ebp+20]				; max_len_input
+ 000000F6  FF 75 10			push	[ebp+16]				; OFFSET user_val
+ 000000F9  FF 75 0C			push	[ebp+12]				; MINVAL
+ 000000FC  FF 75 08			push	[ebp+8]					; MAXVAL
+ 000000FF  E8 00000010			call	ReadVal
 
 					; restore values
- 000000FA  5E				pop		esi
- 000000FB  5F				pop		edi
- 000000FC  59				pop		ecx
+ 00000104  5E				pop		esi
+ 00000105  5F				pop		edi
+ 00000106  59				pop		ecx
 
-					; add the new integer to the array
- 000000FD  8B 06			mov		eax, [esi]
- 000000FF  89 07			mov		[edi], eax
- 00000101  83 C7 04			add		edi, 4
+					; add the new integer to array
+ 00000107  8B 06			mov		eax, [esi]
+ 00000109  89 07			mov		[edi], eax
+ 0000010B  83 C7 04			add		edi, 4
 
 					; next num
- 00000104  E2 D1			loop	Fill
+ 0000010E  E2 D1			loop	Fill
 
 					; clear the stack
- 00000106  5D				pop		ebp
- 00000107  C2 002C			ret		44
- 0000010A			fillArray ENDP
+ 00000110  5D				pop		ebp
+ 00000111  C2 002C			ret		44
+ 00000114			fillArray ENDP
 				;---------------------------------------
- 0000010A			ReadVal proc
+ 00000114			ReadVal proc
 				;
-				; gets string of digits from user (using mGetString macro) and converts the
-				;	inputted string to a signed int value. validation performed to make sure
-				;	minVal <= user_val <= maxVal. this implies that ReadVal can accept and 
-				;	validate signed integers.
+				; gets string integer input from user via macro mGetString. calls validation procedures
+				;	for sign and integer input. the converts inputted string in to numeric 
+				;	signed integers, validated for size (MINVAL <= input <= MAXVAL). conversion
+				;	of string input to integer per string processing techniques demostrated by 
+				;	Professor Paulson in Lecture #22.
 				;
-				; preconditions: string is prepared to prompt user for input, variable declared
-				;	for inputted variable to be stored.
+				; preconditions: variables for sign, input length, string array, user_val 
+				;	declared to implement validation and retrieving input. prompt and error
+				;	strings declared for prompting user to input and when input is erroneous.
 				;
-				; postconditions: prompt string is printed
+				; postconditions: changes registers eax, ebx, ecx, edx, edi, esi
 				;
 				; receives:
-				;		[ebp+40] @user_val_sign = sign (1/-1) of user's input value
-				;		[ebp+36] @actual_len_input = length (bytes) of user input string
-				;		[ebp+32] @error_str	= error msg to display
-				;		[ebp+28] @prompt_str = string asking user to input a value
-				;		[ebp+24] @user_input_str = str to receive user input
-				;		[ebp+20] max_len_input = size of user_input_str
-				;		[ebp+16] @user_val = address of variable to be updated with converted num
-				;		[ebp+12] minVal = minimum acceptable input value
-				;		[ebp+8] maxVal = maximum acceptable input value
-				;		[ebp-4] x = holds intermediate conversions
-				;		[ebp-8] temp = holds local ascii_val
+				;			[ebp+40]	@user_val_sign = sign (1/-1) of user's input value
+				;			[ebp+36]	@actual_len_input = length (bytes) of user input string
+				;			[ebp+32]	@error_str	= error msg to display
+				;			[ebp+28]	@prompt_str = string asking user to input a value
+				;			[ebp+24]	@user_input_str = string array to receive user input
+				;			[ebp+20]	max_len_input = size of user_input_str
+				;			[ebp+16]	@user_val = variable to be updated with converted num
+				;			[ebp+12]	MINVAL = minimum acceptable input value
+				;			[ebp+8]		MAXVAL = maximum acceptable input value
+				;			[ebp-4]		local x = holds intermediate conversions
+				;			[ebp-8]		local temp = holds local ascii_val
 				;
-				; returns: user_val updated with converted signed int
+				; returns: user_val updated with converted signed int. user_val_sign updated
+				;	with sign of user input. error_str displayed if validation failed. 
 				;---------------------------------------
-
 					; set up the stack frame
- 0000010A  55				push	ebp
- 0000010B  8B EC			mov		ebp, esp
- 0000010D  83 EC 08			sub		esp, 8					; create local var
+ 00000114  55				push	ebp
+ 00000115  8B EC			mov		ebp, esp
+ 00000117  83 EC 08			sub		esp, 8					; local vars
 
- 00000110			GetNumber:
-					; prompt the user
+ 0000011A			GetNumber:
+					; get user num
 					mGetString	[ebp+28], [ebp+24], [ebp+20], [ebp+36]
- 00000110  51		     1		push	ecx
- 00000111  52		     1		push	edx
- 00000112  57		     1		push	edi
- 00000113  52		     2		push	edx
- 00000114  8B 55 1C	     2		mov		edx, [ebp+28]
- 00000117  E8 00000000 E     2		call	WriteString
- 0000011C  5A		     2		pop		edx
- 0000011D  8B 7D 24	     1		mov		edi, [ebp+36]
- 00000120  8B 55 18	     1		mov		edx, [ebp+24]
- 00000123  8B 4D 13	     1		mov		ecx, [ebp+20] - 1
- 00000126  E8 00000000 E     1		call	ReadString
- 0000012B  89 07	     1		mov		[edi], eax
- 0000012D  5F		     1		pop		edi
- 0000012E  5A		     1		pop		edx
- 0000012F  59		     1		pop		ecx
+ 0000011A  51		     1		push	ecx
+ 0000011B  52		     1		push	edx
+ 0000011C  57		     1		push	edi
+ 0000011D  52		     2		push	edx
+ 0000011E  8B 55 1C	     2		mov		edx, [ebp+28]
+ 00000121  E8 00000000 E     2		call	WriteString
+ 00000126  5A		     2		pop		edx
+ 00000127  8B 7D 24	     1		mov		edi, [ebp+36]
+ 0000012A  8B 55 18	     1		mov		edx, [ebp+24]
+ 0000012D  8B 4D 13	     1		mov		ecx, [ebp+20] - 1
+ 00000130  E8 00000000 E     1		call	ReadString
+ 00000135  89 07	     1		mov		[edi], eax
+ 00000137  5F		     1		pop		edi
+ 00000138  5A		     1		pop		edx
+ 00000139  59		     1		pop		ecx
 
-					; time to convert input str -> int
- 00000130  FC				cld
- 00000131  8B 7D 24			mov		edi, [ebp+36]
- 00000134  8B 0F			mov		ecx, [edi]				; loop counter = length of user input
- 00000136  8B 75 18			mov		esi, [ebp+24]			; user input is going to be accessed
- 00000139  C7 45 FC			mov		DWORD PTR [ebp-4], 0	; initialize x
+					; convert input str -> int
+ 0000013A  FC				cld
+ 0000013B  8B 7D 24			mov		edi, [ebp+36]
+ 0000013E  8B 0F			mov		ecx, [edi]				; loop counter = length of user input
+ 00000140  8B 75 18			mov		esi, [ebp+24]			; user input is going to be accessed
+ 00000143  C7 45 FC			mov		DWORD PTR [ebp-4], 0	; initialize local x
 	   00000000
- 00000140  BA 00000001			mov		edx, 1			
+ 0000014A  BA 00000001			mov		edx, 1			
 					
-					; update user_val_sign
- 00000145  57				push	edi
- 00000146  8B 7D 28			mov		edi, [ebp+40]
- 00000149  89 17			mov		[edi], edx
- 0000014B  5F				pop		edi
- 0000014C  52				push	edx
+					; get the sign of user's integer
+ 0000014F  57				push	edi
+ 00000150  8B 7D 28			mov		edi, [ebp+40]
+ 00000153  89 17			mov		[edi], edx
+ 00000155  5F				pop		edi
+ 00000156  52				push	edx						; determines sign of final integer
 
- 0000014D			IterateInput:
- 0000014D  B8 00000000			mov		eax, 0					; clear reg for next num to process
- 00000152  AC				lodsb							; load [user input] into eax
+ 00000157			IterateInput:
+ 00000157  B8 00000000			mov		eax, 0					; clear register for next num
+ 0000015C  AC				lodsb							
 
 					; check to see if leading -/+ sign given
- 00000153  BB 0000002D			mov		ebx, 45					; ASCII - = 45
- 00000158  3B C3			cmp		eax, ebx
- 0000015A  74 0B			je		NegativeNum
- 0000015C  BB 0000002B			mov		ebx, 43					; ASCII + = 43
- 00000161  3B C3			cmp		eax, ebx
- 00000163  74 3B			je		NextNum
- 00000165  EB 0F			jmp		Check					; no leading sign, move on
+ 0000015D  BB 0000002D			mov		ebx, 45					; ASCII - = 45
+ 00000162  3B C3			cmp		eax, ebx
+ 00000164  74 0B			je		NegativeNum
+ 00000166  BB 0000002B			mov		ebx, 43					; ASCII + = 43
+ 0000016B  3B C3			cmp		eax, ebx
+ 0000016D  74 3B			je		NextNum
+ 0000016F  EB 0F			jmp		Check					; not negative sign, move on
 
- 00000167			NegativeNum:
- 00000167  BA FFFFFFFF			mov		edx, -1
-					; update user_val_sign
- 0000016C  57				push	edi
- 0000016D  8B 7D 28			mov		edi, [ebp+40]
- 00000170  89 17			mov		[edi], edx
- 00000172  5F				pop		edi
- 00000173  52				push	edx
- 00000174  EB 2A			jmp		NextNum
+ 00000171			NegativeNum:
+					; update sign to reflect negative input
+ 00000171  BA FFFFFFFF			mov		edx, -1
+ 00000176  57				push	edi
+ 00000177  8B 7D 28			mov		edi, [ebp+40]
+ 0000017A  89 17			mov		[edi], edx
+ 0000017C  5F				pop		edi
+ 0000017D  52				push	edx
+ 0000017E  EB 2A			jmp		NextNum
 
- 00000176			Check:
+ 00000180			Check:
 					; validate that ascii between 48-57
- 00000176  89 45 F8			mov		DWORD PTR [ebp-8], eax
- 00000179  50				push	eax
- 0000017A  E8 0000005B			call	validateASCII
- 0000017F  74 44			jz		Error
- 00000181  8B 45 F8			mov		eax, DWORD PTR [ebp-8]
+ 00000180  89 45 F8			mov		DWORD PTR [ebp-8], eax
+ 00000183  50				push	eax
+ 00000184  E8 0000005B			call	validateASCII
+ 00000189  74 44			jz		Error
+ 0000018B  8B 45 F8			mov		eax, DWORD PTR [ebp-8]
 
- 00000184			Conversion:
-					; conversion: x = 10 * x + (user_input[i] - 48)
- 00000184  BB 00000030			mov		ebx, 48
- 00000189  2B C3			sub		eax, ebx
- 0000018B  50				push	eax
- 0000018C  8B 45 FC			mov		eax, DWORD PTR [ebp-4]
- 0000018F  BB 0000000A			mov		ebx, 10
- 00000194  F7 E3			mul		ebx
- 00000196  89 45 FC			mov		DWORD PTR [ebp-4], eax
- 00000199  58				pop		eax
- 0000019A  03 45 FC			add		eax, DWORD PTR [ebp-4]
- 0000019D  89 45 FC			mov		DWORD PTR [ebp-4], eax
- 000001A0			NextNum:
- 000001A0  E2 AB			loop	IterateInput
+ 0000018E			Conversion:
+					; conversion str -> int: x = 10 * x + (user_input[i] - 48)
+ 0000018E  BB 00000030			mov		ebx, 48
+ 00000193  2B C3			sub		eax, ebx
+ 00000195  50				push	eax
+ 00000196  8B 45 FC			mov		eax, DWORD PTR [ebp-4]
+ 00000199  BB 0000000A			mov		ebx, 10
+ 0000019E  F7 E3			mul		ebx
+ 000001A0  89 45 FC			mov		DWORD PTR [ebp-4], eax
+ 000001A3  58				pop		eax
+ 000001A4  03 45 FC			add		eax, DWORD PTR [ebp-4]
+ 000001A7  89 45 FC			mov		DWORD PTR [ebp-4], eax
 
- 000001A2			UpdateVal:
+ 000001AA			NextNum:
+ 000001AA  E2 AB			loop	IterateInput
+
+ 000001AC			UpdateVal:
 					; done, move converted result to user_val
- 000001A2  8B 7D 10			mov		edi, [ebp+16]
- 000001A5  89 07			mov		[edi], eax
+ 000001AC  8B 7D 10			mov		edi, [ebp+16]
+ 000001AF  89 07			mov		[edi], eax
 
 					; validate the int to be within range
- 000001A7  FF 75 28			push	[ebp+40]				;@user_val_sign
- 000001AA  FF 75 10			push	[ebp+16]				;@user_val
- 000001AD  FF 75 0C			push	[ebp+12]				;minVal
- 000001B0  FF 75 08			push	[ebp+8]					;maxVal
- 000001B3  E8 00000048			call	ValidateInt
- 000001B8  74 0B			jz		Error
+ 000001B1  FF 75 28			push	[ebp+40]
+ 000001B4  FF 75 10			push	[ebp+16]
+ 000001B7  FF 75 0C			push	[ebp+12]
+ 000001BA  FF 75 08			push	[ebp+8]
+ 000001BD  E8 00000048			call	ValidateInt
+ 000001C2  74 0B			jz		Error
 
-					; add the appropriate sign to user_val
-					; if input was negative num, restore negative state
- 000001BA  5A				pop		edx
- 000001BB  8B 07			mov		eax, [edi]
- 000001BD  8B DA			mov		ebx, edx
- 000001BF  F7 EB			imul	ebx
- 000001C1  89 07			mov		[edi], eax				; done, move converted result back to user_val
+					; restore approriate sign of integer
+ 000001C4  5A				pop		edx
+ 000001C5  8B 07			mov		eax, [edi]
+ 000001C7  8B DA			mov		ebx, edx
+ 000001C9  F7 EB			imul	ebx
+ 000001CB  89 07			mov		[edi], eax
 
-					; done with str -> int conversion, int also validated
- 000001C3  EB 0F			jmp		DoneConverting
+					; conversion and validation complete
+ 000001CD  EB 0F			jmp		DoneConverting
 
- 000001C5			Error:
+ 000001CF			Error:
 					mDisplayString [ebp+32]
- 000001C5  52		     1		push	edx
- 000001C6  8B 55 20	     1		mov		edx, [ebp+32]
- 000001C9  E8 00000000 E     1		call	WriteString
- 000001CE  5A		     1		pop		edx
- 000001CF  E9 FFFFFF3C			jmp		GetNumber
+ 000001CF  52		     1		push	edx
+ 000001D0  8B 55 20	     1		mov		edx, [ebp+32]
+ 000001D3  E8 00000000 E     1		call	WriteString
+ 000001D8  5A		     1		pop		edx
+ 000001D9  E9 FFFFFF3C			jmp		GetNumber					; get a new num from user
 
- 000001D4			DoneConverting:
+ 000001DE			DoneConverting:
 					; clear the stack
- 000001D4  8B E5			mov		esp, ebp
- 000001D6  5D				pop		ebp
- 000001D7  C2 0024			ret		36
- 000001DA			ReadVal ENDP
+ 000001DE  8B E5			mov		esp, ebp
+ 000001E0  5D				pop		ebp
+ 000001E1  C2 0024			ret		36
+ 000001E4			ReadVal ENDP
 				;---------------------------------------
- 000001DA			validateASCII proc
+ 000001E4			validateASCII proc
 				;
-				; takes ascii value and determines whether value is a digit, meaning between
-				;	ascii values 48 - 57. sets ZF if not a digit, clears ZF it is a digit
+				; Takes ascii value and determines whether value is a digit, meaning between
+				;	ASCII values 48 - 57. sets ZF if not a digit, clears ZF it is a digit.
 				;
-				; preconditions: decimal ascii value to validate is passed as parameter
+				; preconditions: decimal ASCII value to validate is a parameter
 				;
-				; postconditions: ZF is changed accordingly
+				; postconditions: uses registers eax, ebx
 				;
 				; receives:
-				;		[ebp+8] ascii_val = value to validate
+				;			[ebp+8]		ascii_val = value to validate
 				;
-				; returns: updates ZF accordingly
+				; returns: updates ZF accordingly (0 = valid, 1 = invalid)
 				;---------------------------------------
 					; set up the stack frame
- 000001DA  55				push	ebp
- 000001DB  8B EC			mov		ebp, esp
+ 000001E4  55				push	ebp
+ 000001E5  8B EC			mov		ebp, esp
 
-					; if 48 <= ascii_val <= 57, set flag
- 000001DD  8B 45 08			mov		eax, [ebp+8]
- 000001E0  BB 00000030			mov		ebx, 48
- 000001E5  3B C3			cmp		eax, ebx
- 000001E7  7C 0E			jl		InvalidASCII
- 000001E9  BB 00000039			mov		ebx, 57
- 000001EE  3B C3			cmp		eax, ebx
- 000001F0  7F 05			jg		InvalidASCII
- 000001F2  83 C8 01			or		eax, 1				; valid digit, clear ZF and finish
- 000001F5  EB 05			jmp		Done
+					; if 48 <= ascii_val <= 57, valid
+ 000001E7  8B 45 08			mov		eax, [ebp+8]
+ 000001EA  BB 00000030			mov		ebx, 48
+ 000001EF  3B C3			cmp		eax, ebx
+ 000001F1  7C 0E			jl		InvalidASCII
+ 000001F3  BB 00000039			mov		ebx, 57
+ 000001F8  3B C3			cmp		eax, ebx
+ 000001FA  7F 05			jg		InvalidASCII
+ 000001FC  83 C8 01			or		eax, 1					; valid, clear flag
+ 000001FF  EB 05			jmp		Done
 
- 000001F7			InvalidASCII:
- 000001F7  A9 00000000			test	eax, 0
+ 00000201			InvalidASCII:
+ 00000201  A9 00000000			test	eax, 0					; invalid, set flag
 
- 000001FC			Done:
+ 00000206			Done:
 					; clear the stack frame
- 000001FC  5D				pop		ebp
- 000001FD  C2 0004			ret		4
+ 00000206  5D				pop		ebp
+ 00000207  C2 0004			ret		4
 					
- 00000200			validateASCII ENDP
+ 0000020A			validateASCII ENDP
 				;---------------------------------------
- 00000200			validateInt proc
+ 0000020A			validateInt proc
 				;
-				; takes integer value and determines whether value is between valid, meaning
-				;	minVal <= int_val <= maxVal. Zero flag is set if value is not valid, cleared
-				;	otherwise.
+				; takes signed integer value and determines whether value is valid, meaning
+				;	MINVAL <= int_val <= MAXVAL. Sets ZF if invalid, clears ZF if valid.
 				;
-				; preconditions: valid integer value to test, minVal < maxVal
+				; preconditions: sign of value, value to test, MINVAL, MAXVAL are passed as
+				;	arguments.
 				;
-				; postconditions: ZF is changed accordingly
+				; postconditions: uses registers eax, ebx, edx, esi
 				;
 				; receives:
-				;		[ebp+20] @user_val_sign = OFFSET sign (1/-1) of user_val
-				;		[ebp+16] @user_val = OFFSET of value to validate
-				;		[ebp+12] minVal = minimum acceptable input value
-				;		[ebp+8] maxVal = maximum acceptable input value
+				;			[ebp+20]	@user_val_sign = OFFSET sign (1/-1) of user_val
+				;			[ebp+16]	@int_to_validate = OFFSET of value to validate
+				;			[ebp+12]	MINVAL = minimum acceptable input value
+				;			[ebp+8]		MAXVAL = maximum acceptable input value
 				;
-				; returns: updates ZF accordingly
+				; returns: updates ZF accordingly (0 = valid, 1 = invalid)
 				;---------------------------------------
 					; set up the stack frame
- 00000200  55				push	ebp
- 00000201  8B EC			mov		ebp, esp
-					
-					; bring in user_val_sign into edx (has to be done through stacks/args of fillArray, ReadVal, validateInt)
-					; if user_val_sign = -1:
-						; if (unsigned)user_val > (unsigned)minVal
-							; invalid
-					; elif:       --> user_val is positive
-						;if (unsigned)user_val > (unsigned)maxVal
-							; invalid
-					; else:
-						; valid
+ 0000020A  55				push	ebp
+ 0000020B  8B EC			mov		ebp, esp
 
- 00000203  56				push	esi
- 00000204  8B 75 10			mov		esi, [ebp+16]				; bring in user_val
- 00000207  8B 06			mov		eax, [esi]
+					; get value to validate
+ 0000020D  56				push	esi
+ 0000020E  8B 75 10			mov		esi, [ebp+16]				; bring in user_val
+ 00000211  8B 06			mov		eax, [esi]
 
 					; bring in user_val_sign
- 00000209  56				push	esi
- 0000020A  8B 75 14			mov		esi, [ebp+20]
- 0000020D  8B 16			mov		edx, [esi]
- 0000020F  5E				pop		esi
+ 00000213  56				push	esi
+ 00000214  8B 75 14			mov		esi, [ebp+20]
+ 00000217  8B 16			mov		edx, [esi]
+ 00000219  5E				pop		esi
 
 					; determine whether user_val is negative or positive
- 00000210  BB FFFFFFFF			mov		ebx, -1
- 00000215  3B D3			cmp		edx, ebx
- 00000217  74 02			je		Negative
- 00000219  EB 09			jmp		Positive
+ 0000021A  BB FFFFFFFF			mov		ebx, -1
+ 0000021F  3B D3			cmp		edx, ebx
+ 00000221  74 02			je		Negative
+ 00000223  EB 09			jmp		Positive
 
- 0000021B			Negative:
- 0000021B  8B 5D 0C			mov		ebx, [ebp+12]
- 0000021E  3B C3			cmp		eax, ebx
- 00000220  77 10			ja		InvalidInt
- 00000222  EB 09			jmp		ValidInt
+ 00000225			Negative:
+ 00000225  8B 5D 0C			mov		ebx, [ebp+12]
+ 00000228  3B C3			cmp		eax, ebx
+ 0000022A  77 10			ja		InvalidInt
+ 0000022C  EB 09			jmp		ValidInt
 
- 00000224			Positive:
- 00000224  8B 5D 08			mov		ebx, [ebp+8]
- 00000227  3B C3			cmp		eax, ebx
- 00000229  77 07			ja		InvalidInt
- 0000022B  EB 00			jmp		ValidInt
+ 0000022E			Positive:
+ 0000022E  8B 5D 08			mov		ebx, [ebp+8]
+ 00000231  3B C3			cmp		eax, ebx
+ 00000233  77 07			ja		InvalidInt
+ 00000235  EB 00			jmp		ValidInt
 
- 0000022D			ValidInt:
- 0000022D  83 C8 01			or		eax, 1
- 00000230  EB 05			jmp		ValIntDone			; valid int, clear ZF and finish
+ 00000237			ValidInt:
+ 00000237  83 C8 01			or		eax, 1				; valid int, clear ZF
+ 0000023A  EB 05			jmp		ValIntDone
 
- 00000232			InvalidInt:
- 00000232  A9 00000000			test	eax, 0
+ 0000023C			InvalidInt:
+ 0000023C  A9 00000000			test	eax, 0				; invalid int, set ZF
 
- 00000237			ValIntDone:
- 00000237  5E				pop		esi
+ 00000241			ValIntDone:
+ 00000241  5E				pop		esi
 					; clear the stack frame
- 00000238  5D				pop		ebp
- 00000239  C2 0010			ret		16
+ 00000242  5D				pop		ebp
+ 00000243  C2 0010			ret		16
 					
- 0000023C			validateInt ENDP
+ 00000246			validateInt ENDP
 				;---------------------------------------
- 0000023C			displayArray proc
+ 00000246			displayArray proc
 				;
-				; takes array of ARRAYSIZE nums and prints array to console, using the WriteVal
-				;	procedure to convert each integer into a printable string and display. 
-				;	displayArray utilizes macro mdisplayString to print header title, and
-				;	commas between items.
+				; takes array of ARRAYSIZE nums and prints array to console via WriteVal.
+				;	Converts each integer into a string before printing value via macro
+				;	mdisplayString. Also prints header title and commas via mdisplayString.
 				;
-				; preconditions: array_nums is ready to be printed, array_str contains a header
-				;	title, arguments needed for WriteVal are prepared, all items are pushed onto
-				;	stack
+				; preconditions: array contains ARRAYSIZE printable integers, header string and
+				;	commas available to print, arguments needed for WriteVal, string array to 
+				;	contain output string, are all arguments
 				;
-				; postconditions: section title is printed, items of array_nums are printed with
-				;	comma separations
+				; postconditions: uses registers eax, ecx, edi, esi
 				;
 				; receives:
-				;			[ebp+32]	@ comma
-				;			[ebp+28]	@ current_array_num
-				;			[ebp+24]	@ array_nums
-				;			[ebp+20]	ARRAYSIZE
-				;			[ebp+16]	@ array_str
-				;			[ebp+12]	@ user_output_str
-				;			[ebp+8]		max_len_output
+				;			[ebp+32]	@comma = for displaying comma separate items
+				;			[ebp+28]	@current_array_num = contains single int of current int
+				;			[ebp+24]	@array = array of integer to print
+				;			[ebp+20]	ARRAYSIZE = size of array
+				;			[ebp+16]	@array_str = header
+				;			[ebp+12]	@user_output_str = contains string form of int
+				;			[ebp+8]		max_len_output = size of @user_output_str
 				;
-				; returns: none
+				; returns: prints array section header, prints comma-separated items of array
 				;---------------------------------------
 					; set up the stack
- 0000023C  55				push	ebp
- 0000023D  8B EC			mov		ebp, esp
+ 00000246  55				push	ebp
+ 00000247  8B EC			mov		ebp, esp
 
 					; display the header
 					mdisplayString [ebp+16]
- 0000023F  52		     1		push	edx
- 00000240  8B 55 10	     1		mov		edx, [ebp+16]
- 00000243  E8 00000000 E     1		call	WriteString
- 00000248  5A		     1		pop		edx
+ 00000249  52		     1		push	edx
+ 0000024A  8B 55 10	     1		mov		edx, [ebp+16]
+ 0000024D  E8 00000000 E     1		call	WriteString
+ 00000252  5A		     1		pop		edx
 
 					; prepare loop to go to thru array
- 00000249  8B 4D 14			mov		ecx, [ebp+20]
- 0000024C  8B 75 18			mov		esi, [ebp+24]
+ 00000253  8B 4D 14			mov		ecx, [ebp+20]
+ 00000256  8B 75 18			mov		esi, [ebp+24]
 
- 0000024F			ReadArray:
-					; get the array item to write
- 0000024F  8B 06			mov		eax, [esi]
- 00000251  57				push	edi
- 00000252  8B 7D 1C			mov		edi, [ebp+28]
- 00000255  89 07			mov		[edi], eax
- 00000257  5F				pop		edi
+ 00000259			ReadArray:
+					; get the array int to write
+ 00000259  8B 06			mov		eax, [esi]
+ 0000025B  57				push	edi
+ 0000025C  8B 7D 1C			mov		edi, [ebp+28]
+ 0000025F  89 07			mov		[edi], eax
+ 00000261  5F				pop		edi
 
 					; prepare args for WriteVal
- 00000258  FF 75 1C			push	[ebp+28]
- 0000025B  FF 75 0C			push	[ebp+12]
- 0000025E  FF 75 08			push	[ebp+8]
- 00000261  E8 00000018			call	WriteVal
+ 00000262  FF 75 1C			push	[ebp+28]
+ 00000265  FF 75 0C			push	[ebp+12]
+ 00000268  FF 75 08			push	[ebp+8]
+ 0000026B  E8 00000018			call	WriteVal
 
 					; no comma after last item
- 00000266  83 F9 01			cmp		ecx, 1
- 00000269  74 0A			je		NextItem
+ 00000270  83 F9 01			cmp		ecx, 1
+ 00000273  74 0A			je		NextItem
 					mdisplayString [ebp+32]
- 0000026B  52		     1		push	edx
- 0000026C  8B 55 20	     1		mov		edx, [ebp+32]
- 0000026F  E8 00000000 E     1		call	WriteString
- 00000274  5A		     1		pop		edx
+ 00000275  52		     1		push	edx
+ 00000276  8B 55 20	     1		mov		edx, [ebp+32]
+ 00000279  E8 00000000 E     1		call	WriteString
+ 0000027E  5A		     1		pop		edx
 
- 00000275			NextItem:
+ 0000027F			NextItem:
 					; point to next array item
- 00000275  83 C6 04			add		esi, 4
- 00000278  E2 D5			loop	ReadArray
+ 0000027F  83 C6 04			add		esi, 4
+ 00000282  E2 D5			loop	ReadArray
 						
 					; clear the stack
- 0000027A  5D				pop		ebp
- 0000027B  C2 001C			ret		28
- 0000027E			displayArray ENDP
+ 00000284  5D				pop		ebp
+ 00000285  C2 001C			ret		28
+ 00000288			displayArray ENDP
 				;---------------------------------------
- 0000027E			WriteVal proc
+ 00000288			WriteVal proc
 				;
-				; takes integer int_to_display, converts each digit in int_to_display to its
-				;	respective ASCII value, and stores the ASCII value in output_str. calls
-				;	mdisplayString to print the converted result to the console
+				; Converts int_to_display to string of it's respective ASCII values which is 
+				;	stored in output_str. prints string form of integer in output_str via 
+				;	mdisplayString.
 				;
-				; preconditions: int_to_display is an integer to be converted, output_str is a
-				;	string array capable of storing converted ASCII values.
+				; preconditions: int_to_display is signed integer, and output_str is a
+				;	string array of appropriate length passed as arguments.
 				;		
-				; postconditions: mdisplayString prints output_str to console.
+				; postconditions: uses registers eax, ebx, ecx, edx, edi, esi
 				;
 				; receives: 
-				;			[ebp+16] @int_to_display
-				;			[ebp+12] @output_str
-				;			[ebp+8] @len_output_str
-				;			[ebp-4] local var counter = counts length of @int_to_display
+				;			[ebp+16]	@int_to_display = signed int to be converted/printed
+				;			[ebp+12]	@output_str = string array conaining converted int string
+				;			[ebp+8]		@len_output_str = length of output_str
+				;			[ebp-4]		local counter = contains length of int_to_display
 				;
-				; returns: none
+				; returns: output_str printed and contains string representation of integer
 				;---------------------------------------
 					; set up stack frame
- 0000027E  55				push	ebp
- 0000027F  8B EC			mov		ebp, esp
- 00000281  83 EC 04			sub		esp, 4
-
-				; conversion pseudocode:
-				; cld -> still moving from the beginning of the array
-				; point to the beginning of the array, output_str
-				; bring in int_to_display
-					; @int_to_display / 10
-					; remainder (edx) = lowest place value digit
-					; take remainder and add 48 -> this is the ASCII value
-					; push ASCII onto stack
-					; increment counter
-					; loop and do again
-					; when eax = 0, no more divisons, int is done converting
-
-				; new loop with ecx = counter
-					; pop value off stack (1st pop is 1st digit/+/-)
-					; add value to location of array pointer (starting at beginning)
-					; loop with counter
-					
-					; when loop is done, call mdisplayString [output_str]
+ 00000288  55				push	ebp
+ 00000289  8B EC			mov		ebp, esp
+ 0000028B  83 EC 04			sub		esp, 4
 
 					; store procedures from calling proc
- 00000284  51				push	ecx
- 00000285  56				push	esi
- 00000286  50				push	eax
- 00000287  57				push	edi
+ 0000028E  51				push	ecx
+ 0000028F  56				push	esi
+ 00000290  50				push	eax
+ 00000291  57				push	edi
 
 					; prepare items for conversion
- 00000288  8B 7D 0C			mov		edi, [ebp+12]
- 0000028B  8B 75 10			mov		esi, [ebp+16]
- 0000028E  8B 06			mov		eax, [esi]
- 00000290  C7 45 FC			mov		DWORD PTR [ebp-4], 0
+ 00000292  8B 7D 0C			mov		edi, [ebp+12]
+ 00000295  8B 75 10			mov		esi, [ebp+16]
+ 00000298  8B 06			mov		eax, [esi]
+ 0000029A  C7 45 FC			mov		DWORD PTR [ebp-4], 0
 	   00000000
- 00000297  8B 4D 08			mov		ecx, [ebp+8]
- 0000029A  50				push	eax
+ 000002A1  8B 4D 08			mov		ecx, [ebp+8]
+ 000002A4  50				push	eax
 
+ 000002A5			ClearArray:
+ 000002A5  B8 00000000			mov		eax, 0
+ 000002AA  FC				cld
+ 000002AB  AA				stosb							; zeroes out string array
+ 000002AC  E2 F7			loop	ClearArray
 
- 0000029B			CLearArray:
- 0000029B  B8 00000000			mov		eax, 0
- 000002A0  FC				cld
- 000002A1  AA				stosb
- 000002A2  E2 F7			loop	CLearArray
+					; re-prepare items for conversion
+ 000002AE  58				pop		eax
+ 000002AF  8B 7D 0C			mov		edi, [ebp+12]
 
-					; reprepare items for conversion
- 000002A4  58				pop		eax
- 000002A5  8B 7D 0C			mov		edi, [ebp+12]
+					; check sign of the num, need a leading "-"
+ 000002B2  8B 06			mov		eax, [esi]
+ 000002B4  83 F8 00			cmp		eax, 0
+ 000002B7  7D 10			jge		Convert					; num is positive
 
-					; check the sign of the num, if negative add negative sign to array first
- 000002A8  8B 06			mov		eax, [esi]
- 000002AA  83 F8 00			cmp		eax, 0
- 000002AD  7D 10			jge		Convert
-					; otherwise, num is negative
+ 000002B9			NegativeNum:
+ 000002B9  50				push	eax
+ 000002BA  B8 0000002D			mov		eax, 45					; ASCII 45 = "-"
+ 000002BF  FC				cld
+ 000002C0  AA				stosb
+ 000002C1  58				pop		eax
 
- 000002AF			NegativeNum:
- 000002AF  50				push	eax
- 000002B0  B8 0000002D			mov		eax, 45				; ASCII 45 is "-"
- 000002B5  FC				cld
- 000002B6  AA				stosb
- 000002B7  58				pop		eax
+					; make num positive, convert digits only
+ 000002C2  BB FFFFFFFF			mov		ebx, -1
+ 000002C7  F7 EB			imul	ebx
 
-					; make num positive and convert
- 000002B8  BB FFFFFFFF			mov		ebx, -1
- 000002BD  F7 EB			imul	ebx
+ 000002C9			Convert:
+ 000002C9  33 D2			xor		edx, edx
+ 000002CB  BB 0000000A			mov		ebx, 10
+ 000002D0  F7 F3			div		ebx						; remainder in edx = value to convert
 
- 000002BF			Convert:
-					; if eax < 10, then no division, num directly converted
-					;cmp		eax, 10
-					;jb		Ascii
- 000002BF  33 D2			xor		edx, edx
- 000002C1  BB 0000000A			mov		ebx, 10
- 000002C6  F7 F3			div		ebx					; remainder = value to convert
- 000002C8			Ascii:
- 000002C8  83 C2 30			add		edx, 48
- 000002CB  52				push	edx
- 000002CC  8B 4D FC			mov		ecx, DWORD PTR [ebp-4]
- 000002CF  41				inc		ecx
- 000002D0  89 4D FC			mov		DWORD PTR [ebp-4], ecx
- 000002D3  83 F8 00			cmp		eax, 0
- 000002D6  74 02			je		PrepareOutput
- 000002D8  EB E5			jmp		Convert
+ 000002D2			Ascii:
+ 000002D2  83 C2 30			add		edx, 48
+ 000002D5  52				push	edx
+ 000002D6  8B 4D FC			mov		ecx, DWORD PTR [ebp-4]
+ 000002D9  41				inc		ecx
+ 000002DA  89 4D FC			mov		DWORD PTR [ebp-4], ecx
+ 000002DD  83 F8 00			cmp		eax, 0
+ 000002E0  74 02			je		PrepareOutput			; when repeated divisions = 0, print num
+ 000002E2  EB E5			jmp		Convert					; still digits left to convert
 
- 000002DA			PrepareOutput:
- 000002DA  8B 4D FC			mov		ecx, DWORD PTR [ebp-4]
- 000002DD			Output:
- 000002DD  58				pop		eax
- 000002DE  FC				cld
- 000002DF  AA				stosb
- 000002E0  E2 FB			loop	Output
+ 000002E4			PrepareOutput:
+ 000002E4  8B 4D FC			mov		ecx, DWORD PTR [ebp-4]
 
-					; done, now print the value
+ 000002E7			Output:
+ 000002E7  58				pop		eax
+ 000002E8  FC				cld
+ 000002E9  AA				stosb
+ 000002EA  E2 FB			loop	Output
+
+					; num is ready to print
 					mDisplayString [ebp+12]
- 000002E2  52		     1		push	edx
- 000002E3  8B 55 0C	     1		mov		edx, [ebp+12]
- 000002E6  E8 00000000 E     1		call	WriteString
- 000002EB  5A		     1		pop		edx
+ 000002EC  52		     1		push	edx
+ 000002ED  8B 55 0C	     1		mov		edx, [ebp+12]
+ 000002F0  E8 00000000 E     1		call	WriteString
+ 000002F5  5A		     1		pop		edx
 
 					; restore calling procedure registers
- 000002EC  5F				pop		edi
- 000002ED  58				pop		eax
- 000002EE  5E				pop		esi
- 000002EF  59				pop		ecx
+ 000002F6  5F				pop		edi
+ 000002F7  58				pop		eax
+ 000002F8  5E				pop		esi
+ 000002F9  59				pop		ecx
 					
 					; clear the stack
- 000002F0  8B E5			mov		esp, ebp			; get rid of local var
- 000002F2  5D				pop		ebp
- 000002F3  C2 000C			ret		12
- 000002F6			WriteVal ENDP
+ 000002FA  8B E5			mov		esp, ebp				; local var counter
+ 000002FC  5D				pop		ebp
+ 000002FD  C2 000C			ret		12
+ 00000300			WriteVal ENDP
 				;---------------------------------------
- 000002F6			displayStats proc
+ 00000300			displayStats proc
 				;
-				; iterates over array of nums and calculates the sum and the average (rounding 
-				;	down) of the array. displayStats will the print the two values to the user
-				;	using WriteVal while also displaying headers with macro mdisplayString
+				; iterates over array of signed integers, calculating total sum and average
+				;	(average rounded down) of the array. headers are printed via mdisplayString
+				;	and resulting values are printed via WriteVal.
 				;
-				; preconditions: variables to contain sum and average, array of values, size of 
-				;	array passed, string headers for the sum and average are all passed as 
-				;	arguments on stack
+				; preconditions: array of ARRAYSIZE signed integers, variables for sum and 
+				;	average, appropriate header strings, are passed as arguments. arguments for
+				;	WriteVal also passed as arguments.
 				;
-				; postconditions: appropriate values and headers are displayed
+				; postconditions: uses registers eax, ebx, ecx, edx, edi, esi
 				;
 				; receives:
-				;			[ebp+36]	OFFSET user_output_str
-				;			[ebp+32]	max_len_output
-				;			[ebp+28]	OFFSET sum
-				;			[ebp+24]	OFFSET average
-				;			[ebp+20]	OFFSET array_nums
-				;			[ebp+16]	ARRAYSIZE
-				;			[ebp+12]	OFFSET sum_str
-				;			[ebp+8]		OFFSET average_str
+				;			[ebp+36]	@user_output_str = string array for value to be printed
+				;			[ebp+32]	max_len_output = length of @user_output_str
+				;			[ebp+28]	@sum = variable containing sum of array
+				;			[ebp+24]	@average = variable containing average of array
+				;			[ebp+20]	@array = array from which sum and average are calculated
+				;			[ebp+16]	ARRAYSIZE = size of @array
+				;			[ebp+12]	@sum_str = header for sum
+				;			[ebp+8]		@average_str = header for average
 				;
-				; returns: none
+				; returns: headers for sum and average are printed. sum and average values
+				;	of array are calculated and appropriate variables updated. sum and average
+				;	values are printed.
 				;---------------------------------------
 					; prepare the stack
- 000002F6  55				push	ebp
- 000002F7  8B EC			mov		ebp, esp
+ 00000300  55				push	ebp
+ 00000301  8B EC			mov		ebp, esp
 
 					; display sum header
 					mdisplayString [ebp+12]
- 000002F9  52		     1		push	edx
- 000002FA  8B 55 0C	     1		mov		edx, [ebp+12]
- 000002FD  E8 00000000 E     1		call	WriteString
- 00000302  5A		     1		pop		edx
+ 00000303  52		     1		push	edx
+ 00000304  8B 55 0C	     1		mov		edx, [ebp+12]
+ 00000307  E8 00000000 E     1		call	WriteString
+ 0000030C  5A		     1		pop		edx
 
 					; prepare values for summation
- 00000303  8B 75 14			mov		esi, [ebp+20]				; array
- 00000306  8B 7D 1C			mov		edi, [ebp+28]				; start with sum, will also use avg
- 00000309  B8 00000000			mov		eax, 0
- 0000030E  8B 5D 10			mov		ebx, [ebp+16]
- 00000311  8B 4D 10			mov		ecx, [ebp+16]
+ 0000030D  8B 75 14			mov		esi, [ebp+20]				; array
+ 00000310  8B 7D 1C			mov		edi, [ebp+28]				; start with sum, will also use avg
+ 00000313  B8 00000000			mov		eax, 0
+ 00000318  8B 5D 10			mov		ebx, [ebp+16]
+ 0000031B  8B 4D 10			mov		ecx, [ebp+16]
 
- 00000314			Calculate:
- 00000314  8B 07			mov		eax, [edi]
- 00000316  03 06			add		eax, [esi]
- 00000318  89 07			mov		[edi], eax					; update sum
- 0000031A  83 C6 04			add		esi, 4
- 0000031D  99				cdq
- 0000031E  F7 FB			idiv	ebx
- 00000320  57				push	edi
- 00000321  8B 7D 18			mov		edi, [ebp+24]
- 00000324  89 07			mov		[edi], eax					; update average
- 00000326  5F				pop		edi
- 00000327  E2 EB			loop	Calculate
+ 0000031E			Calculate:
+ 0000031E  8B 07			mov		eax, [edi]
+ 00000320  03 06			add		eax, [esi]
+ 00000322  89 07			mov		[edi], eax					; update sum
+ 00000324  83 C6 04			add		esi, 4
+ 00000327  99				cdq
+ 00000328  F7 FB			idiv	ebx
+ 0000032A  57				push	edi
+ 0000032B  8B 7D 18			mov		edi, [ebp+24]
+ 0000032E  89 07			mov		[edi], eax					; update average
+ 00000330  5F				pop		edi
+ 00000331  E2 EB			loop	Calculate
 
 					; display the sum
- 00000329  FF 75 1C			push	[ebp+28]
- 0000032C  FF 75 24			push	[ebp+36]
- 0000032F  FF 75 20			push	[ebp+32]
- 00000332  E8 FFFFFF47			call	WriteVal
+ 00000333  FF 75 1C			push	[ebp+28]
+ 00000336  FF 75 24			push	[ebp+36]
+ 00000339  FF 75 20			push	[ebp+32]
+ 0000033C  E8 FFFFFF47			call	WriteVal
 
 					; display average header
 					mdisplayString [ebp+8]
- 00000337  52		     1		push	edx
- 00000338  8B 55 08	     1		mov		edx, [ebp+8]
- 0000033B  E8 00000000 E     1		call	WriteString
- 00000340  5A		     1		pop		edx
+ 00000341  52		     1		push	edx
+ 00000342  8B 55 08	     1		mov		edx, [ebp+8]
+ 00000345  E8 00000000 E     1		call	WriteString
+ 0000034A  5A		     1		pop		edx
 
 					; display the average
- 00000341  FF 75 18			push	[ebp+24]
- 00000344  FF 75 24			push	[ebp+36]
- 00000347  FF 75 20			push	[ebp+32]
- 0000034A  E8 FFFFFF2F			call	WriteVal
+ 0000034B  FF 75 18			push	[ebp+24]
+ 0000034E  FF 75 24			push	[ebp+36]
+ 00000351  FF 75 20			push	[ebp+32]
+ 00000354  E8 FFFFFF2F			call	WriteVal
 
 					; clear the stack
- 0000034F  5D				pop		ebp
- 00000350  C2 0020			ret		32
- 00000353			displayStats ENDP
+ 00000359  5D				pop		ebp
+ 0000035A  C2 0020			ret		32																   
+ 0000035D			displayStats ENDP
+				;---------------------------------------
+ 0000035D			farewell proc
+				;
+				; displays goodbye message to user via macro mdisplayString.
+				;
+				; preconditions: goodbye string declared and passed as argument.
+				;
+				; postconditions: postconditions of mdisplayString apply.
+				;
+				; receives:
+				;			[ebp+8] @goodbye_str
+				;
+				; returns: string is printed to user
+				;---------------------------------------
+					; set up the stack
+ 0000035D  55				push	ebp
+ 0000035E  8B EC			mov		ebp, esp
 
+					; display the string
+					mdisplayString [ebp+8]
+ 00000360  52		     1		push	edx
+ 00000361  8B 55 08	     1		mov		edx, [ebp+8]
+ 00000364  E8 00000000 E     1		call	WriteString
+ 00000369  5A		     1		pop		edx
+
+					; clear the stack
+ 0000036A  5D				pop		ebp
+ 0000036B  C3				ret
+ 0000036C			farewell ENDP
 				END main
-Microsoft (R) Macro Assembler Version 14.26.28806.0	    06/08/20 00:01:49
+Microsoft (R) Macro Assembler Version 14.26.28806.0	    06/08/20 15:27:47
 9Programming Assignment #6   (RohitChaudhary_Project6.asm    Symbols 2 - 1
 
 
@@ -1058,8 +1063,8 @@ Segments and Groups:
 
 FLAT . . . . . . . . . . . . . .	GROUP
 STACK  . . . . . . . . . . . . .	32 Bit	 00001000 Para	  Stack	  'STACK'	 
-_DATA  . . . . . . . . . . . . .	32 Bit	 00000295 Para	  Public  'DATA'	
-_TEXT  . . . . . . . . . . . . .	32 Bit	 00000353 Para	  Public  'CODE'	
+_DATA  . . . . . . . . . . . . .	32 Bit	 0000029B Para	  Public  'DATA'	
+_TEXT  . . . . . . . . . . . . .	32 Bit	 0000036C Para	  Public  'CODE'	
 
 
 Procedures, parameters, and locals:
@@ -1129,16 +1134,16 @@ ReadInt  . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 ReadKeyFlush . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 ReadKey  . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 ReadString . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-ReadVal  . . . . . . . . . . . .	P Near	 0000010A _TEXT	Length= 000000D0 Public STDCALL
-  GetNumber  . . . . . . . . . .	L Near	 00000110 _TEXT	
-  IterateInput . . . . . . . . .	L Near	 0000014D _TEXT	
-  NegativeNum  . . . . . . . . .	L Near	 00000167 _TEXT	
-  Check  . . . . . . . . . . . .	L Near	 00000176 _TEXT	
-  Conversion . . . . . . . . . .	L Near	 00000184 _TEXT	
-  NextNum  . . . . . . . . . . .	L Near	 000001A0 _TEXT	
-  UpdateVal  . . . . . . . . . .	L Near	 000001A2 _TEXT	
-  Error  . . . . . . . . . . . .	L Near	 000001C5 _TEXT	
-  DoneConverting . . . . . . . .	L Near	 000001D4 _TEXT	
+ReadVal  . . . . . . . . . . . .	P Near	 00000114 _TEXT	Length= 000000D0 Public STDCALL
+  GetNumber  . . . . . . . . . .	L Near	 0000011A _TEXT	
+  IterateInput . . . . . . . . .	L Near	 00000157 _TEXT	
+  NegativeNum  . . . . . . . . .	L Near	 00000171 _TEXT	
+  Check  . . . . . . . . . . . .	L Near	 00000180 _TEXT	
+  Conversion . . . . . . . . . .	L Near	 0000018E _TEXT	
+  NextNum  . . . . . . . . . . .	L Near	 000001AA _TEXT	
+  UpdateVal  . . . . . . . . . .	L Near	 000001AC _TEXT	
+  Error  . . . . . . . . . . . .	L Near	 000001CF _TEXT	
+  DoneConverting . . . . . . . .	L Near	 000001DE _TEXT	
 SetConsoleCursorInfo . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 SetConsoleCursorPosition . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 SetConsoleMode . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
@@ -1175,34 +1180,35 @@ WriteStackFrameName  . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 WriteStackFrame  . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 WriteString  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 WriteToFile  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-WriteVal . . . . . . . . . . . .	P Near	 0000027E _TEXT	Length= 00000078 Public STDCALL
-  CLearArray . . . . . . . . . .	L Near	 0000029B _TEXT	
-  NegativeNum  . . . . . . . . .	L Near	 000002AF _TEXT	
-  Convert  . . . . . . . . . . .	L Near	 000002BF _TEXT	
-  Ascii  . . . . . . . . . . . .	L Near	 000002C8 _TEXT	
-  PrepareOutput  . . . . . . . .	L Near	 000002DA _TEXT	
-  Output . . . . . . . . . . . .	L Near	 000002DD _TEXT	
+WriteVal . . . . . . . . . . . .	P Near	 00000288 _TEXT	Length= 00000078 Public STDCALL
+  ClearArray . . . . . . . . . .	L Near	 000002A5 _TEXT	
+  NegativeNum  . . . . . . . . .	L Near	 000002B9 _TEXT	
+  Convert  . . . . . . . . . . .	L Near	 000002C9 _TEXT	
+  Ascii  . . . . . . . . . . . .	L Near	 000002D2 _TEXT	
+  PrepareOutput  . . . . . . . .	L Near	 000002E4 _TEXT	
+  Output . . . . . . . . . . . .	L Near	 000002E7 _TEXT	
 WriteWindowsMsg  . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-displayArray . . . . . . . . . .	P Near	 0000023C _TEXT	Length= 00000042 Public STDCALL
-  ReadArray  . . . . . . . . . .	L Near	 0000024F _TEXT	
-  NextItem . . . . . . . . . . .	L Near	 00000275 _TEXT	
-displayStats . . . . . . . . . .	P Near	 000002F6 _TEXT	Length= 0000005D Public STDCALL
-  Calculate  . . . . . . . . . .	L Near	 00000314 _TEXT	
-fillArray  . . . . . . . . . . .	P Near	 000000CB _TEXT	Length= 0000003F Public STDCALL
-  Fill . . . . . . . . . . . . .	L Near	 000000D7 _TEXT	
-introduction . . . . . . . . . .	P Near	 000000A6 _TEXT	Length= 00000025 Public STDCALL
-main . . . . . . . . . . . . . .	P Near	 00000000 _TEXT	Length= 000000A6 Public STDCALL
+displayArray . . . . . . . . . .	P Near	 00000246 _TEXT	Length= 00000042 Public STDCALL
+  ReadArray  . . . . . . . . . .	L Near	 00000259 _TEXT	
+  NextItem . . . . . . . . . . .	L Near	 0000027F _TEXT	
+displayStats . . . . . . . . . .	P Near	 00000300 _TEXT	Length= 0000005D Public STDCALL
+  Calculate  . . . . . . . . . .	L Near	 0000031E _TEXT	
+farewell . . . . . . . . . . . .	P Near	 0000035D _TEXT	Length= 0000000F Public STDCALL
+fillArray  . . . . . . . . . . .	P Near	 000000D5 _TEXT	Length= 0000003F Public STDCALL
+  Fill . . . . . . . . . . . . .	L Near	 000000E1 _TEXT	
+introduction . . . . . . . . . .	P Near	 000000B0 _TEXT	Length= 00000025 Public STDCALL
+main . . . . . . . . . . . . . .	P Near	 00000000 _TEXT	Length= 000000B0 Public STDCALL
 printf . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
 scanf  . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
-validateASCII  . . . . . . . . .	P Near	 000001DA _TEXT	Length= 00000026 Public STDCALL
-  InvalidASCII . . . . . . . . .	L Near	 000001F7 _TEXT	
-  Done . . . . . . . . . . . . .	L Near	 000001FC _TEXT	
-validateInt  . . . . . . . . . .	P Near	 00000200 _TEXT	Length= 0000003C Public STDCALL
-  Negative . . . . . . . . . . .	L Near	 0000021B _TEXT	
-  Positive . . . . . . . . . . .	L Near	 00000224 _TEXT	
-  ValidInt . . . . . . . . . . .	L Near	 0000022D _TEXT	
-  InvalidInt . . . . . . . . . .	L Near	 00000232 _TEXT	
-  ValIntDone . . . . . . . . . .	L Near	 00000237 _TEXT	
+validateASCII  . . . . . . . . .	P Near	 000001E4 _TEXT	Length= 00000026 Public STDCALL
+  InvalidASCII . . . . . . . . .	L Near	 00000201 _TEXT	
+  Done . . . . . . . . . . . . .	L Near	 00000206 _TEXT	
+validateInt  . . . . . . . . . .	P Near	 0000020A _TEXT	Length= 0000003C Public STDCALL
+  Negative . . . . . . . . . . .	L Near	 00000225 _TEXT	
+  Positive . . . . . . . . . . .	L Near	 0000022E _TEXT	
+  ValidInt . . . . . . . . . . .	L Near	 00000237 _TEXT	
+  InvalidInt . . . . . . . . . .	L Near	 0000023C _TEXT	
+  ValIntDone . . . . . . . . . .	L Near	 00000241 _TEXT	
 wsprintfA  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
 
 
@@ -1293,6 +1299,7 @@ KEY_EVENT  . . . . . . . . . . .	Number	 00000001h
 KEY_MASKS  . . . . . . . . . . .	Number	 0000001Fh   
 LEFT_ALT_PRESSED . . . . . . . .	Number	 00000002h   
 LEFT_CTRL_PRESSED  . . . . . . .	Number	 00000008h   
+MAXVAL . . . . . . . . . . . . .	Number	 7FFFFFFFh   
 MB_ABORTRETRYIGNORE  . . . . . .	Number	 00000002h   
 MB_APPLMODAL . . . . . . . . . .	Number	 00000000h   
 MB_CANCELTRYCONTINUE . . . . . .	Number	 00000006h   
@@ -1318,6 +1325,7 @@ MB_USERICON  . . . . . . . . . .	Number	 00000080h
 MB_YESNOCANCEL . . . . . . . . .	Number	 00000003h   
 MB_YESNO . . . . . . . . . . . .	Number	 00000004h   
 MENU_EVENT . . . . . . . . . . .	Number	 00000008h   
+MINVAL . . . . . . . . . . . . .	Number	 -80000000h   
 MOUSE_EVENT  . . . . . . . . . .	Number	 00000002h   
 MessageBox . . . . . . . . . . .	Text   	 MessageBoxA
 NULL . . . . . . . . . . . . . .	Number	 00000000h   
@@ -1445,10 +1453,8 @@ lightGreen . . . . . . . . . . .	Number	 0000000Ah
 lightMagenta . . . . . . . . . .	Number	 0000000Dh   
 lightRed . . . . . . . . . . . .	Number	 0000000Ch   
 magenta  . . . . . . . . . . . .	Number	 00000005h   
-maxVal . . . . . . . . . . . . .	Number	 7FFFFFFFh   
 max_len_input  . . . . . . . . .	DWord	 00000180 _DATA	
 max_len_output . . . . . . . . .	DWord	 0000020B _DATA	
-minVal . . . . . . . . . . . . .	Number	 -80000000h   
 prompt_str . . . . . . . . . . .	Byte	 00000155 _DATA	
 red  . . . . . . . . . . . . . .	Number	 00000004h   
 sum_str  . . . . . . . . . . . .	Byte	 0000023E _DATA	
