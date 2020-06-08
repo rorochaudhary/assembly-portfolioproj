@@ -218,7 +218,7 @@ fillArray proc
 ; returns: updated array
 ;---------------------------------------
 	; set up the stack frame
-	push	ebp
+	push		ebp
 	mov		ebp, esp
 
 	; prepare loop
@@ -767,7 +767,7 @@ Calculate:
 
 	; clear the stack
 	pop		ebp
-	ret		32
+	ret		32																   
 displayStats ENDP
 
 END main
