@@ -4,7 +4,7 @@
 <br>Tools: Microsoft Visual Studio
 
 ## Introduction
-This is the final project for CS 271 - Computer Architecture and Assembly Language. Written in x86 MASM via Visual Studio 2019, the program demonstrates knowledge of low-level programming in order to implement low-level I/O procedures and Macros. The course utilized procedures and knowledge from the Irvine32 library as detailed in "Assembly Language for x86 Processors" by Kip Irvine. 
+This is the final project for my Computer Architecture and Assembly Language class. Written in x86 MASM via Visual Studio 2019, the program demonstrates knowledge of low-level programming in order to implement low-level I/O procedures and Macros. The course utilized procedures and knowledge from the Irvine32 library as detailed in "Assembly Language for x86 Processors" by Kip Irvine. 
 
 ## Description
 The Irvine32 library provided the ReadString and WriteString procedures in order to retrieve and print information in order to focus on other topics presented while learning. This project demonstrates retrieving and displaying information by implementing the ReadVal and WriteVal procedures in order to get user numeric input in the form of a string, convert that string into an integer, perform basic calculations, and convert integers back into a printable string.
